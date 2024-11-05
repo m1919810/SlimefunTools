@@ -1,0 +1,16 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3465
+  type: BLUE_DYE
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    display-name: '{"extra":[{"bold":false,"italic":false,"underlined":false,"strikethrough":false,"obfuscated":false,"color":"#6B32A8","text":"合成蓝图"}],"text":""}'
+    lore:
+    - '{"text":""}'
+    - '{"extra":[{"bold":false,"italic":false,"underlined":false,"strikethrough":false,"obfuscated":false,"color":"gray","text":"一张空白的蓝图"}],"text":""}'
+    - '{"extra":[{"bold":false,"italic":false,"underlined":false,"strikethrough":false,"obfuscated":false,"color":"gray","text":"可以存储一个合成配方"}],"text":""}'
+    - '{"text":""}'
+    - '{"extra":[{"bold":false,"italic":false,"underlined":false,"strikethrough":false,"obfuscated":false,"color":"#E4ED32","text":"工具"}],"text":""}'
+    PublicBukkitValues:
+      slimefun:slimefun_item: NTW_CRAFTING_BLUEPRINT

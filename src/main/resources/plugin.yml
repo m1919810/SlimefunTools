@@ -1,0 +1,208 @@
+## CHANGE 更改此处为你的附属名称
+name: SlimefunTools
+
+## CHANGE 更改此处为你的名称
+author: matl114
+
+## CHANGE 这是对你插件的介绍
+description: Slimefun tools
+
+## CHANGE 指向你的 JavaPlugin 主类
+main: me.matl114.SlimefunTools.implement.SlimefunTools
+
+## 你可以更改为你的项目仓库地址，或者你的个人网站。你也可以移除此项目。
+website: https://github.com/m1919810
+
+## 该值将在构建时被自动替换为pom.xml中定义的版本。
+## 不要更改此项目。
+version: ${project.version}
+
+## 这是运行该附属所需的最低MC版本。
+api-version: '1.20'
+
+## 指定 Slimefun 作为依赖项，必须
+
+depend:
+  - Slimefun
+softdepend:
+  - GuizhanLibPlugin
+  - SlimeGlue
+  - ColoredEnderChests
+  - DyedBackpacks
+  - EnderCargo
+  - EcoPower
+  - ElectricSpawners
+  - ExoticGarden
+  - ExtraGear
+  - ExtraHeads
+  - HotbarPets
+  - luckyblocks-sf
+  - RedstoneConnector
+  - PrivateStorage
+  - SlimefunOreChunks
+  - SlimyTreeTaps
+  - SoulJars
+  - CommandOverride
+  - EmeraldEnchants2
+  - QuickMarket
+  - QuickSell
+  - RankPrefixPlus
+  - MoreTools
+  - LiteXpansion
+  - MobCapturer
+  - SoundMuffler
+  - ExtraTools
+  - TranscEndence
+  - Liquid
+  - SFCalc
+  - SlimefunWarfare
+  - Slimy-Power-Suits
+  - InfernalExpansion
+  - FluffyMachines
+  - SlimyRepair
+  - InfinityExpansion
+  - FoxyMachines
+  - GlobalWarming
+  - GlobiaMachines
+  - DynaTech
+  - GeneticChickengineering
+  - HeadLimiter
+  - BlockLimiter
+  - SlimeXpansion
+  - Barrels
+  #- ClayTech
+  - FNAmplifications
+  - SimpleMaterialGenerators
+  - Netheopoiesis
+  - Networks
+  - EMC2
+  - Nexcavate
+  - SimpleStorage
+  - SimpleUtils
+  - AlchimiaVitae
+  - SlimeTinker
+  - PotionExpansion
+  - FlowerPower
+  - Galactifun
+  - ElementManipulation
+  - CrystamaeHistoria
+  - DankTech
+  - DankTech2
+  - Networks-Changed
+  - VillagerUtil
+  - MissileWarfare
+  - SensibleToolbox
+  - Endrex
+  - Bump
+  - FinalTech # For build 29- (included)
+  - FinalTECH # For build 29+
+  - SlimefunLuckyBlocks
+  - FutureTech
+  - DemonicExpansion
+  - BedrockTechnology
+  - SlimefunItemExpansion
+  - SupplementalServiceableness
+  - GuizhanCraft
+  - Magmanimous
+  - UltimateGenerators-RC27 # 不确定是否存在这个版本
+  - UltimateGenerators # 构建站有
+  - UltimateGenerators2 # 同上
+  - CrispyMachine
+  - DimensionTraveler
+  - Chocohills
+  - draconic # 疑似新版
+  - DracFun # 疑似旧版(?
+  - EzSFAddon # 疑似旧版
+  - EzTech # 疑似新版
+  - RandomExpansion
+  - ExLimus
+  - MoneyAndThings
+  - VoidHarvesters
+  - SlimyBees
+  - GeneticManipulation
+  - ObsidianExpansion
+  - NotEnoughAddons
+  - SlimeSec
+  - EMCTech
+  - RelicsOfCthonia
+  - Supreme
+  - DyeBench
+  - MiniBlocks
+  - SlimeHUD
+  - SpiritsUnchained
+  - Cultivation
+  - Gastronomicon
+  - SmallSpace
+  - BetterReactor
+  - BetterGenerator
+  - VillagerTrade
+  - SlimeFrame
+  - AdvancedTech
+  - Quaptics
+  - CompressionCraft
+  - CringleBosses
+  - ThermalFun
+  - FastMachines
+  - MomoTech
+  - OreGeneration
+  - Huolaiy
+  - EnchanterLimit
+  - LogicTech
+  - LogiTech
+  - LogicTECH
+  - LogiTECH
+  - SlimeAE
+  - SlimeChem
+  - WilderNether
+  - MapJammers
+  - Cakecraft
+  - SFMobDrops
+  - Drugfun
+  - SlimefunNukes
+  - SlimeCustomizer
+  - HardcoreSlimefun
+  - SfChunkInfo
+  - SlimefunTranslation
+  - FinalTECH-Changed
+  - Blueprint
+  - SlimefunMobDrops
+  - BearFluidTanks
+  - SCrafter
+  - EquivalencyTech
+  - LuckyPandas
+  - FasterTools
+  - Beyond_Horizons
+  - BloodAlchemy
+  - ExtraUtils
+  - BlueSlime
+  - XpCreator
+  - BetterFarming
+  - Automation
+  - Ex-Limus
+  - EzMiner
+  - NetherEnough
+  - magic-powder
+  - BoxOfChocolates
+  - AdditionalWeaponry
+  - DisguiseCookies
+  - MagicXpansion
+  - Tofu-Addons
+  # Other plugins
+  - PlaceholderAPI
+  - NBTAPI
+  - RykenSlimefunCustomizer
+  - LogiTech
+loadBefore:
+  - SaneCrafting
+  - SlimefunAdvancements
+
+commands:
+  itembase:
+    description: basic itembase command
+    aliases: ib
+    usage: 'ask the author,pls.I dont think theres a need for you to use these commands'
+
+permissions:
+  slimefuntool.command.itembase:
+    description: Allows you to use operator commands
+    default: op
