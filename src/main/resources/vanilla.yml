@@ -1,0 +1,19 @@
+#namespacedKey 不得重复
+demo:demo_recipe:
+  #当前支持shaped unshaped
+  type: shaped
+  recipe:
+    #shaped默认3x3 暂时是3x3 等我到时候做2x2
+    #1表示第2个位置的材料
+    1:
+      #支持material exact
+      type: material
+      choices:
+        #可用的选项,相当于tag
+        #material时候这里可以写minecraft: 也可以不写
+        #exact的时候写物品id 同物品部分
+        - minecraft:diamond
+  #物品id同物品部分
+  output: slimefun:iron_dust
+  #1表示启用 0表示禁用
+  enable: 1

@@ -1,0 +1,72 @@
+#命名空间，必须要<namespace>:<key> 小写
+#slimefuntools:functional 是隐藏分类 可以直接在物品中使用
+
+#覆写已存在的物品组,只可以覆写item(图标)
+
+demo:group1:
+  type: normal
+  #使用普通类型的物品组
+  item: GOLD_DUST
+  #不知道干啥的参数 默认为3
+  tier: 1
+  hide: false
+
+
+demo:cgroup1:
+  type: custom
+  item: LOGITECH_BUG
+  hide: false
+  title: "&a丐版自定义界面1"
+  preset:
+    pattern:
+      ### P N表示翻页键
+      #可以没有 但是不能只有P或只有N 也不能一种键有多个
+      ## B表示返回键 可以放多个
+      ## S表示搜索键 可以放多个
+      ##其他字符自行定义
+      - "SSfPBNfSS"
+      - "aaaaaaaaa"
+      - "aaaaaaaaa"
+      - "aaaaaaaaa"
+      - "aaaaaaaaa"
+      - "ffffBffff"
+    a: null
+    f: minecraft:diamond
+  contents:
+    ##preset的空地将会成为contents的地方
+    ##按顺序放入下面的设置
+    ##当index足够大的时候会自动翻页放置
+    #id 优先解析物品组,然后解析粘液物品展示,最后解析物品
+    1: logitech:beyond
+    #展示粘液物品，必须要求大写SFID
+    2: IRON_DUST
+    3: demo:group1
+    5: demo:cgroup2
+    #将粘液物品当作普通物品展示，小写或加前缀以区分
+    53: slimefun:gold_dust
+
+
+
+
+demo:cgroup2:
+  type: custom
+  item: bedrock
+  hide: false
+  title: "&a丐版自定义界面2"
+  preset:
+    pattern:
+      - "BBBBBBBBB"
+      - "SaaaaaaaS"
+      - "SaaaaaaaS"
+      - "SaaaaaaaS"
+      - "PaaaaaaaN"
+      - "fffgggfff"
+    a: null
+    f: minecraft:bedrock
+    g: slimefun:iron_dust
+  contents:
+    1: logitech:beyond
+    2: IRON_DUST
+    3: demo:group1
+    5: demo:cgroup1
+    53: slimefun:gold_dust

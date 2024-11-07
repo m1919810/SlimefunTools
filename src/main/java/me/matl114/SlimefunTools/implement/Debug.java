@@ -54,7 +54,7 @@ public class Debug {
     }
 
     public static  void logger(String message) {
-        log.info(message);
+        log.info(s(message));
     }
 
     public static  void logger(int message) {
@@ -63,10 +63,13 @@ public class Debug {
     public static void debug(int message) {
         debug(Integer.toString(message));
     }
+    public static String s(Object o) {
+        return o!=null?o.toString():"null";
+    }
     public static void logger(Object ... msgs){
         String msg="";
         for(Object m : msgs){
-            msg+=" "+m.toString();
+            msg+=" "+s(m);
         }
         logger(msg);
     }
@@ -76,12 +79,12 @@ public class Debug {
 
     }
     public static void logger(Supplier<String> str){
-        logger(str.get());
+        logger(s(str.get()));
     }
     public static void debug(Object ...msgs) {
         String msg="";
         for(Object m : msgs){
-            msg+=" "+m.toString();
+            msg+=" "+s(m);
         }
         debug(msg);
     }

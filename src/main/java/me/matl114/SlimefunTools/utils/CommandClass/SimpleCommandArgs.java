@@ -98,10 +98,14 @@ public class SimpleCommandArgs {
                     throw new RuntimeException("there is no next argument in your command definition!");
                 }
             }
-            public TabProvider peekUncompleteArg(){
-                for(Argument a:args){
-                    if(argsMap.get(a)==null){
-                        return a;
+            public List<String> getTabComplete(){
+                for(int i=0;i<=args.length;i++){
+                    if(i==args.length ||argsMap.get(args[i])==null){
+                        if(i==0){
+                            return null;
+                        }
+                        final int index=i-1;
+                        return args[index].tabCompletor.get().stream().filter(s->s.startsWith(argsMap.get(args[index]))).toList();
                     }
                 }
                 return null;

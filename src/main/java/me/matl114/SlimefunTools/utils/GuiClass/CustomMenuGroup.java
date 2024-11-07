@@ -5,39 +5,47 @@ import lombok.Getter;
 import me.matl114.SlimefunTools.utils.MenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 public class CustomMenuGroup {
     public interface CustomMenuClickHandler{
         static CustomMenuClickHandler of(ChestMenu.MenuClickHandler handler){
             return (cm)->handler;
         }
+        static CustomMenuClickHandler ofEmpty(){
+            return (cm)->ChestMenuUtils.getEmptyClickHandler();
+        }
         public ChestMenu.MenuClickHandler getHandler(CustomMenu menu);
        // public ChestMenu.MenuClickHandler getHandler(ChestMenu menu);
     }
     @Getter
     String title;
+    @Getter
     int sizePerPage;
+    @Getter
     int pages;
+    @Getter
     int[] contents=null;
+    @Getter
     boolean placeItems=false;
     boolean placeOverrides=false;
     boolean placePresets=false;
     boolean placeBackHandlers=false;
+    @Getter
     int prev;
+    @Getter
     int next;
     boolean enablePageChangeSlot;
     List<ItemStack> items=new ArrayList<>();
     List<CustomMenuClickHandler> handlers=new ArrayList<>();
     HashMap<Integer,ItemStack> overrideItem=new HashMap<>();
     HashMap<Integer,CustomMenuClickHandler> overrideHandler=new HashMap<>();
-    Function<Integer,ChestMenu> presetGenerator=null;
+    IntFunction<ChestMenu> presetGenerator=null;
     public CustomMenuGroup(String title,int PageSize,int pages){
         assert pages > 0;
         this.title=title;
@@ -60,7 +68,7 @@ public class CustomMenuGroup {
         this.placeOverrides=true;
         return this;
     }
-    public CustomMenuGroup enablePresets(Function<Integer,ChestMenu> presetGenerator){
+    public CustomMenuGroup enablePresets(IntFunction<ChestMenu> presetGenerator){
         assert presetGenerator != null;
         this.placePresets=true;
         this.presetGenerator=presetGenerator;
@@ -93,16 +101,23 @@ public class CustomMenuGroup {
         setOverrideHandler(slot,handler);
         return this;
     }
-    private <T extends Object> void addInternal(List<? super T>  list,int slot,T value){
+    //return if expand
+    private <T extends Object> boolean addInternal(List<? super T>  list,int slot,T value){
+        if(list.size()>slot){
+            list.set(slot,value);
+            return false;
+        }
         while(list.size()<=slot){
             list.add(null);
         }
         list.set(slot,value);
+        return true;
     }
     public CustomMenuGroup addItem(int slot,ItemStack item){
         assert this.placeItems;
-        validSlot(slot);
-        addInternal(items,slot,item);
+        if(addInternal(items,slot,item)){
+            resetPageSize();
+        }
         return this;
     }
     public CustomMenuGroup resetPageSize(){
@@ -128,8 +143,9 @@ public class CustomMenuGroup {
     }
     public CustomMenuGroup addHandler(int slot,CustomMenuClickHandler handler){
         assert this.placeItems;
-        validSlot(slot);
-        addInternal(handlers,slot,handler);
+        if(addInternal(handlers,slot,handler)){
+            resetPageSize();
+        }
         return this;
     }
     public CustomMenuGroup addItem(int slot,ItemStack item,CustomMenuClickHandler handler){
@@ -144,28 +160,47 @@ public class CustomMenuGroup {
             return handler.getHandler(menu);
         }
     }
-    public CustomMenuGroup openPage(Player p,int pages){
-        CustomMenu menu=new CustomMenu(this,pages,presetGenerator);
+    public IntFunction<ChestMenu> getDefaultGenerator(){
+        return (integer)->{
+            ChestMenu cmenu=new ChestMenu(this.title);
+            cmenu.addItem(this.sizePerPage-1,null);
+            for(int i=0;i<this.sizePerPage;++i){
+                cmenu.addMenuClickHandler(i,ChestMenuUtils.getEmptyClickHandler());
+            }
+            return cmenu;
+        };
+    }
+    public CustomMenu buildPage(int page){
+        CustomMenu menu=new CustomMenu(this,page,presetGenerator!=null?presetGenerator:getDefaultGenerator());
         loadPage(menu);
+        return menu;
+    }
+    public CustomMenuGroup openPage(Player p,int pages){
+        CustomMenu menu=buildPage(pages);
         menu.openMenu(p);
         return this;
     }
     public CustomMenuGroup loadPage(CustomMenu menu){
         assert menu != null;
         assert menu.getPage()>=1&&menu.getPage()<=this.pages;
-        menu.getMenu().replaceExistingItem(this.sizePerPage,null);
+
         menu.loadInternal();
         if(this.placeItems){
             int len=this.contents.length;
             int startIndex=Math.max(len*(menu.getPage()-1),0);
             int endIndex=Math.min(len*(menu.getPage()),this.items.size());
-            for(int i=0;i<endIndex-startIndex;i++){
+            int i=0;
+            for(;i<endIndex-startIndex;i++){
                 menu.getMenu().replaceExistingItem(contents[i],this.items.get(startIndex+i));
                 menu.getMenu().addMenuClickHandler(contents[i],getHandler(this.handlers.get(startIndex+i),menu));
             }
+            for(;i<len;i++){
+                menu.getMenu().addMenuClickHandler(contents[i],ChestMenuUtils.getEmptyClickHandler());
+                menu.getMenu().replaceExistingItem(contents[i],null);
+            }
         }
         if(this.placeOverrides){
-            Set<Integer> allOverrides=overrideItem.keySet();
+            HashSet<Integer> allOverrides=new HashSet<>(overrideItem.keySet());
             allOverrides.addAll(overrideHandler.keySet());
             for(Integer slot:allOverrides){
                 if(overrideItem.containsKey(slot)){

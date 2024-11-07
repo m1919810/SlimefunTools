@@ -240,6 +240,12 @@ public class AddUtils {
         }
 
     }
+    public static boolean copyItem(ItemStack from,ItemStack to){
+        if(from==null||to==null)return false;
+        to.setType(from.getType());
+        to.setData(from.getData());
+        return to.setItemMeta(from.getItemMeta());
+    }
     public static Pair<ItemStack[], ItemStack[]> buildRecipes(Pair<Object[],Object[]> itemStacks){
         return buildRecipes(itemStacks.getFirstValue(),itemStacks.getSecondValue());
     }

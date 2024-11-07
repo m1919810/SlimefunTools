@@ -5,6 +5,7 @@ import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import org.bukkit.entity.Player;
 
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 public class CustomMenu {
     @Getter
@@ -17,7 +18,7 @@ public class CustomMenu {
         this(parent, page, null);
 
     }
-    public CustomMenu(CustomMenuGroup parent, int page, Function<Integer,ChestMenu  > generator) {
+    public CustomMenu(CustomMenuGroup parent, int page, IntFunction<ChestMenu> generator) {
         this.parent = parent;
         this.page = page;
         this.menu=generator==null?new ChestMenu(parent.getTitle()): generator.apply(page);

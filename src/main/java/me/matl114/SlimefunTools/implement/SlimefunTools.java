@@ -2,7 +2,11 @@ package me.matl114.SlimefunTools.implement;
 
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import lombok.Getter;
-import me.matl114.SlimefunTools.functions.CustomItemBase;
+import me.matl114.SlimefunTools.core.CustomItemBase;
+import me.matl114.SlimefunTools.core.ItemRegister;
+import me.matl114.SlimefunTools.core.VanillaCraftingInjecter;
+import me.matl114.SlimefunTools.functional.DynamicFunctional;
+import me.matl114.SlimefunTools.utils.StructureClass.Manager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -15,8 +19,16 @@ public class SlimefunTools extends JavaPlugin implements   SlimefunAddon {
         instance = this;
         ConfigLoader.load(this);
         new CustomItemBase()
-                .init(Paths.get(getDataFolder().toString(),"item-base").toString())
-                .registerCommand(this);
+                .init(this,Paths.get(getDataFolder().toString(),"item-base").toString());
+        new ItemRegister()
+                .init(this,"items","item-groups");
+        new VanillaCraftingInjecter()
+                .init(this,"vanilla");
+
+    }
+    public void onDisable() {
+        Manager.onDisable();
+        DynamicFunctional.onFunctionalUnitDisable();
     }
 
     public JavaPlugin getJavaPlugin() {

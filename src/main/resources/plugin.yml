@@ -201,8 +201,14 @@ commands:
     description: basic itembase command
     aliases: ib
     usage: 'ask the author,pls.I dont think theres a need for you to use these commands'
-
+  itemreg:
+    description: basic itemreg command
+    aliases: ig
+    usage: 'ask the author,pls.I dont think theres a need for you to use these commands'
 permissions:
   slimefuntool.command.itembase:
+    description: Allows you to use operator commands
+    default: op
+  slimefuntool.command.itemreg:
     description: Allows you to use operator commands
     default: op

@@ -1,0 +1,53 @@
+#这是强制修改的列表
+#
+#写在前面： id解析规则
+#
+#null代表空物品
+#对于非空物品
+#可以写mc material,sf id, customItemBase id
+#sf id只能写在本插件前加载的物品 可以引用其他附属的sfid 前提是需要在本插件soft depends(大部分已经涵盖)中
+#我们提供了高识别度的前缀防止错误解析id
+#原版物品可用前缀 minecraft:  mc:
+#sf物品可用前缀 slimefun:  sf:
+#itembase可用前缀 custom:  cs:
+#
+#
+#物品设置数量：
+# 数量写在id前面
+# 192minecraft:iron_ingot
+# 53COPPER_INGOT
+# 53slimefun:copper_ingot
+#对于sf和mc的物品, 大小写无所谓，会统一转为大写
+#对于itembase物品,是大小写敏感的，并且字符串名字内部不能含有':'
+#
+#
+#物品比较机制
+#对于粘液物品 只要物品与原粘液物品相似即可
+#采用SlimefunUtils中提供的方法 会有更宽松的检测
+#对于物品库物品 采用ItemStack.isSimiliar(new ItemStack())
+DEMO_SF_ITEM:
+
+  item: demo1
+  #默认的组 不可引用非normal和FlexGroup的组
+  #可以引用其他附属的组  使用/itemreg stats查看
+  group: demo:group1
+  #配方表,可以引用任意id，写null表示空 其余解析规则同上
+  recipe:
+    - null
+    - dirt
+  #配方类型,可以引用任意已加载配方类型,使用/itemreg stats查看
+  #增加类型：
+  #minecraft:crafting_table
+  #minecraft:furnace
+  #
+  #从特殊配方类型取消时候/加入特殊配方类型时，不保证热载成功
+  rtype: slimefun:nuclear_reactor
+  #物品合成输出
+  #可以修改数量与类型
+  output: 8demo1
+  #该配置文件可以用来注册物品 也可以用来修改物品, 写已存在的粘液物品id会使用配置覆盖物品
+
+##覆写已经存在的粘液物品
+IRON_DUST:
+  item: demo1
+  rtype: infinityexpansion:infinity_forge

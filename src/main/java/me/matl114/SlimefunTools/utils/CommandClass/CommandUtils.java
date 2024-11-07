@@ -16,6 +16,13 @@ public class CommandUtils {
             return defaultValue;
         }
     }
+    public static Integer parseIntegerOrDefault(String value,Integer defaultValue){
+        try {
+            return Integer.parseInt(value);
+        }catch (NumberFormatException e){
+            return defaultValue;
+        }
+    }
 
 
 
