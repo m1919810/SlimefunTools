@@ -242,6 +242,7 @@ public class AddUtils {
     }
     public static boolean copyItem(ItemStack from,ItemStack to){
         if(from==null||to==null)return false;
+        to.setAmount(from.getAmount());
         to.setType(from.getType());
         to.setData(from.getData());
         return to.setItemMeta(from.getItemMeta());

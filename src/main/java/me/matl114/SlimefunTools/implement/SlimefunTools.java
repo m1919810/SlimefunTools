@@ -48,4 +48,9 @@ public class SlimefunTools extends JavaPlugin implements   SlimefunAddon {
     public static void runSync(BukkitRunnable runnable) {
         runnable.runTask(getInstance());
     }
+    public static void runSyncLater(Runnable runnable, long delay) {
+        new BukkitRunnable() {
+            public void run() {runnable.run();}
+        }.runTaskLater(getInstance(), delay);
+    }
 }

@@ -4,6 +4,7 @@ import io.github.thebusybiscuit.slimefun4.libraries.dough.config.Config;
 import lombok.Getter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -40,11 +41,27 @@ public class InstanceModifyRecord<T extends Object>{
     }
     public void executeUndoModification(String attribute){
         this.identifier.set(this.instance,attribute,this.record.get(attribute));
+        this.record.remove(attribute);
     }
-    public void executeUndoModifications(){
-        for(String attribute:record.keySet()){
+    public void executeUndoAllModifications(){
+        HashSet<String> attributeSet=new HashSet<>(record.keySet());
+        for(String attribute:attributeSet){
             executeUndoModification(attribute);
         }
+    }
+    public void executeDataDelete(String attribute){
+        executeUndoModification(attribute);
+        String parentPath=pathParser.apply(instance);
+        this.database.setValue(c(parentPath,attribute),null);
+        this.database.save();
+    }
+    public void executeAllDataDelete(){
+        HashSet<String> attrNames=new HashSet<>(record.keySet());
+        for(String attrName:attrNames){
+            executeDataDelete(attrName);
+        }
+        this.database.setValue(pathParser.apply(instance),null);
+        this.database.save();
     }
     public void executeDataSave(String attribute ,SaveMethod mode){
         executeDataSave(attribute,mode,()->null);
@@ -60,8 +77,10 @@ public class InstanceModifyRecord<T extends Object>{
             }else{
                 //如果历史记录不是持续刷新 说明config调了个寂寞 相当于没调,所以顺便就删了吧
                 this.database.setValue(c(parentPath,attribute),null);
-                this.database.save();
             }
+            this.database.save();
+
         }
     }
+    //todo execute reload
 }

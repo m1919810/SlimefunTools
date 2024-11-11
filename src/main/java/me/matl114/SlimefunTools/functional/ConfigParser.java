@@ -7,15 +7,14 @@ import me.matl114.SlimefunTools.core.CustomItemBase;
 import me.matl114.SlimefunTools.core.ItemRegister;
 import me.matl114.SlimefunTools.implement.Debug;
 import me.matl114.SlimefunTools.utils.CommandClass.CommandUtils;
+import me.matl114.SlimefunTools.utils.StructureClass.StringHashMap;
 import me.matl114.SlimefunTools.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
@@ -120,6 +119,10 @@ public class ConfigParser<T extends Object> implements StaticFunctional{
             .setDeserializer(((config, string) -> CommandUtils.parseIntegerOrDefault(config.getString(string),null)))
             .setSerializer(((config, parent, value,mode,elseData) -> config.setValue(parent,String.valueOf((Integer)value))))
             .setIdentifier(Integer.class);
+    private static ConfigParser<String> stringConfigParser=new ConfigParser<String>()
+            .setDeserializer((Config::getString))
+            .setSerializer(((config, parent, value,mode,elseData) -> config.setValue(parent,value)))
+            .setIdentifier(String.class);
 
     private static ConfigParser<RecipeChoice[]> recipeChoiceParser=new ConfigParser<RecipeChoice[]>()
             .setDeserializer((config,string)->{
@@ -150,6 +153,7 @@ public class ConfigParser<T extends Object> implements StaticFunctional{
             .setSerializer(((config, parent, value, saveMethod, elseData) -> {
                 RecipeChoice[] recipe=(RecipeChoice[])value;
                 List<String> recipeString=new ArrayList<>();
+                //清除之前的值
                 for(int i=0;i<recipe.length;i++){
                     final String index=String.valueOf(i);
                     RecipeChoice choice=recipe[i];
@@ -167,6 +171,32 @@ public class ConfigParser<T extends Object> implements StaticFunctional{
                 }
             }))
             .setIdentifier(RecipeChoice[].class);
+    //only the map of string,not recursively map
+    private static ConfigParser<StringHashMap> hashmapParser=new ConfigParser<StringHashMap>()
+            .setIdentifier(StringHashMap.class)
+            .setDeserializer(((config, string) -> {
+                Set<String> keys=config.getKeys(string);
+                if(keys==null||keys.isEmpty()){
+                    return new StringHashMap();
+                }else{
+                    StringHashMap valuePair=new StringHashMap();
+                    for(String key:keys){
+                        String value=config.getString(c(string,key));
+                        if(value!=null){
+                            valuePair.put(key,value);
+                        }
+                    }
+                    return valuePair;
+                }
+            }))
+            .setSerializer(((config, parent, value, saveMethod, elseData) -> {
+                Debug.logger("extraData save called");
+                for(Map.Entry<String,String> entry:(value).entrySet()){
+                    config.setValue(c(parent,entry.getKey()),entry.getValue());
+                }
+            }));
+
+    //the map of String to Object? maybe we need a Map.class? or sth else
     //Parsers register moved to here
     public static ConfigParser getIdentifier(Class clazz){
         ConfigParser parser= Identifiers.get(clazz);
@@ -201,10 +231,11 @@ public class ConfigParser<T extends Object> implements StaticFunctional{
     public static void serialize(Config config,String parent,Object value,Class type,SaveMethod saveMethod,String... elseData){
         try{
             assert value==null||type.isInstance(value);
-            if(value==null){
-                config.setValue(parent,null);
-            }else {
+            config.setValue(parent,null);
+            if(value!=null) {
                 ConfigParser parser=ConfigParser.getIdentifier(type);
+                //清除当前值
+                //将新值设置上去
                 parser.configSerializer.serialize(config,parent,value,saveMethod,elseData);
                 config.save();
             }

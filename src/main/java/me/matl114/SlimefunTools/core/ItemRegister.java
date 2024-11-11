@@ -18,9 +18,11 @@ import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import lombok.Getter;
 import me.matl114.SlimefunTools.Slimefun.CustomRecipeType;
 import me.matl114.SlimefunTools.Slimefun.CustomSlimefunItem;
+import me.matl114.SlimefunTools.Slimefun.core.CustomSlimefunItemRegisterEvent;
 import me.matl114.SlimefunTools.functional.*;
 import me.matl114.SlimefunTools.implement.ConfigLoader;
 import me.matl114.SlimefunTools.implement.Debug;
+import me.matl114.SlimefunTools.implement.SlimefunTools;
 import me.matl114.SlimefunTools.utils.*;
 import me.matl114.SlimefunTools.utils.CommandClass.CommandUtils;
 import me.matl114.SlimefunTools.utils.CommandClass.ComplexCommandExecutor;
@@ -47,6 +49,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -132,7 +135,11 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
             .setType("group",ItemGroup.class)
             .setSetter("rtype",((slimefunItem, o) -> {
                 RecipeType type=(RecipeType)o;
-                slimefunItem.getRecipeType().unregister(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                try{
+                    slimefunItem.getRecipeType().unregister(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                }catch (Throwable e){
+                    Debug.logger("An error occured while unregistering recipeType,item:",slimefunItem.getId(),"recipeType:",slimefunItem.getRecipeType().getKey());
+                }
                 slimefunItem.setRecipeType(type);
                 if(is6x6(type)){
                     ItemStack[] recipes=slimefunItem.getRecipe();
@@ -141,14 +148,26 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                         Debug.logger("Failed to override slimefun item Recipe while setting 6x6 recipe",slimefunItem.getId());
                     }
                 }
-                type.register(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                try{
+                    type.register(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                }catch (Throwable e){
+                    Debug.logger("An error occured while registering recipeType,item:",slimefunItem.getId(),"recipeType:",type.getKey());
+                }
             }))
             .setGetter("rtype",SlimefunItem::getRecipeType)
             .setType("rtype",RecipeType.class)
             .setSetter("output",((slimefunItem, o) -> {
-                slimefunItem.getRecipeType().unregister(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                try{
+                    slimefunItem.getRecipeType().unregister(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                }catch (Throwable e){
+                    Debug.logger("An error occured while unregistering output from recipeType,item:",slimefunItem.getId(),"recipeType:",slimefunItem.getRecipeType().getKey());
+                }
                 slimefunItem.setRecipeOutput(convertIfSf((ItemStack)o) );
-                slimefunItem.getRecipeType().register(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                try{
+                    slimefunItem.getRecipeType().register(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                }catch (Throwable e){
+                    Debug.logger("An error occured while registering output from recipeType,item:",slimefunItem.getId(),"recipeType:",slimefunItem.getRecipeType().getKey());
+                }
             }))
             .setGetter("output",(SlimefunItem::getRecipeOutput))
             //比较output和recipe需要比较数量
@@ -158,7 +177,11 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
             .setType("output",ItemStack.class)
             .setSetter("recipe",((slimefunItem, o) -> {
                 RecipeType type=slimefunItem.getRecipeType();
-                type.unregister(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                try{
+                    type.unregister(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                }catch (Throwable e){
+                    Debug.logger("An error occured while unregistering recipe from recipeType,item: ",slimefunItem.getId(),"recipeType:",type.getKey());
+                }
                 ItemStack[] recipe=(ItemStack[]) o;
                 ItemStack[] originRecipe=slimefunItem.getRecipe();
                 boolean needResize=false;
@@ -188,8 +211,11 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                     //modify recipe without ReflectUtil like simply copy array
                     System.arraycopy(recipe,0,originRecipe,0,originRecipe.length);
                 }
-
-                type.register(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                try{
+                    type.register(slimefunItem.getRecipe(),slimefunItem.getRecipeOutput());
+                }catch (Throwable e){
+                    Debug.logger("An error occured while unregistering recipe from recipeType,item:",slimefunItem.getId(),"recipeType:",type.getKey());
+                }
             }))
             .setGetter("recipe",(s)->{
                 ItemStack[] recipe=s.getRecipe();
@@ -455,15 +481,14 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                 }
             }else{
                 if(hasItemGroup&&hasRecipeType&&hasItemId){
-                    try{
-                        SlimefunItemStack newItem=new SlimefunItemStack(item,stack);
-                        CustomSlimefunItem newSfItem=new CustomSlimefunItem(group,newItem,recipeType1,new ItemStack[]{}).setOutput(outputItem).registerItem((SlimefunAddon) plugin);
+                    CustomSlimefunItem newSfItem=registerSlimefunItem(item,stack,group,recipeType1,outputItem,
+                            //TODO add item Type
+                            "default");
+                    if(newSfItem!=null){
                         registeredItems.put(item,newSfItem );
                         this.items.put(item,newSfItem);
-                    }catch (Throwable e){
-                        Debug.logger("物品 ",item,": error in item register: ");
-                        Debug.logger(e);
                     }
+
                 }else {
                     Debug.logger("物品 ",item,": lack arguments ");
                 }
@@ -611,8 +636,8 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
 
     }
     private void createSlimefunItemInstance(String id,ItemStack stack,ItemGroup group,RecipeType rtype,ItemStack[] recipes,ItemStack output,SaveMethod save){
-        SlimefunItemStack sfitem=new SlimefunItemStack(id,stack);
-        SlimefunItem instance=new CustomSlimefunItem(group,sfitem,rtype,new ItemStack[]{}).setOutput(output);
+        //todo add itemType
+        SlimefunItem instance=registerSlimefunItem(id,stack,group,rtype,output,"default");
         this.registeredItems.put(id,instance);
         this.registerItem(instance);
         InstanceModifyRecord<SlimefunItem> record= new InstanceModifyRecord<>(instance,this.itemConfig,SlimefunItem::getId,SlimefunItem.class,false);
@@ -714,7 +739,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
         //load configs
         loadConfigs();
         //load commands
-        registerCommand();
+        registerFunctional();
         return this;
     }
     public ItemRegister reload(){
@@ -724,13 +749,13 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
     public void deconstruct(){
         this.removeFromRegistry();
         for(InstanceModifyRecord<SlimefunItem> record:this.itemModifyRecords.values()){
-            record.executeUndoModifications();
+            record.executeUndoAllModifications();
         }
         for(InstanceModifyRecord<ItemGroup> record:this.itemGroupModifyRecords.values()){
-            record.executeUndoModifications();
+            record.executeUndoAllModifications();
         }
         for(Map.Entry<String,SlimefunItem> entry:registeredItems.entrySet()){
-            disableSlimefunItem(entry.getValue());
+            unregisterSlimefunItem(entry.getValue());
         }
         for(Map.Entry<String,ItemGroup> entry:registeredGroups.entrySet()){
            disableItemGroup(entry.getValue());
@@ -750,7 +775,29 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
         this.groupConfig.save();
     }
 
-    public void disableSlimefunItem(SlimefunItem item){
+    /**
+     only execute the origin registry,do not adding to ItemRegister map
+     * @return
+     */
+    public CustomSlimefunItem registerSlimefunItem(String item,ItemStack stack,ItemGroup group,RecipeType rtype,ItemStack output,String itemType){
+        try{
+            SlimefunItemStack newItem=new SlimefunItemStack(item,stack);
+            //setOutput: if not null, set Output
+            CustomSlimefunItem newSfItem=new CustomSlimefunItem(group,newItem,rtype,new ItemStack[]{}).setOutput(output).registerItem((SlimefunAddon) plugin);
+            plugin.getServer().getPluginManager().callEvent(new CustomSlimefunItemRegisterEvent(newSfItem));
+            return newSfItem;
+        }catch (Throwable e){
+            Debug.logger("物品 ",item,": error in item register: ");
+            Debug.logger(e);
+            return null;
+        }
+    }
+    //todo add unregister Event
+    /**
+     only execute the origin unregistry,do not removing from ItemRegister map
+     * @return
+     */
+    public void unregisterSlimefunItem(SlimefunItem item){
         item.disable();
         Slimefun.getRegistry().getAllSlimefunItems().remove(item);
         item.getItemGroup().remove(item);
@@ -760,28 +807,32 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
         List<ItemGroup> categories = Slimefun.getRegistry().getAllItemGroups();
         Collections.sort(categories, Comparator.comparingInt(ItemGroup::getTier));
     }
-    public void unregisterSlimefunItem(String id){
+    public void deleteSlimefunItemModification(String id){
         if(this.itemModifyRecords.containsKey(id)){
             InstanceModifyRecord<SlimefunItem> record=this.itemModifyRecords.remove(id);
-            record.executeUndoModifications();
+            record.executeAllDataDelete();
         }
         if(registeredItems.containsKey(id)){
-            disableSlimefunItem(registeredItems.remove(id));
+            unregisterSlimefunItem(registeredItems.remove(id));
         }
     }
     public void deleteSlimefunItemConfig(String id){
-        unregisterSlimefunItem(id);
+        deleteSlimefunItemModification(id);
         this.itemConfig.setValue(id,null);
         this.itemConfig.save();
     }
-    private ItemRegister registerCommand(){
-        Validate.isTrue(!registered, "itemBase command have already been registered!");
+    private ItemRegister registerFunctional(){
+        Validate.isTrue(!registered, "ItemRegister functional have already been registered!");
         plugin.getServer().getPluginCommand("itemreg").setExecutor(this);
         plugin.getServer().getPluginCommand("itemreg").setTabCompleter(this);
         this.registered=true;
         return this;
     }
-    public ItemRegister registerItems(Plugin plugin){
+    private ItemRegister unregisterFunctional(){
+        Validate.isTrue(registered, "ItemRegister functional havem't been unregistered!");
+        plugin.getServer().getPluginCommand("itemreg").setExecutor(null);
+        plugin.getServer().getPluginCommand("itemreg").setTabCompleter(null);
+        this.registered=false;
         return this;
     }
     private List<String> statsType=new ArrayList<>(){{
@@ -954,7 +1005,6 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                 menu.replaceExistingItem(recipeSlots[j],item.getRecipe()[j]);
             }
         }
-        //todo 在下方显示已修改的~
         public ChestMenu apply(int __i){
             ChestMenu menu= new ChestMenu(AddUtils.resolveColor("&a懒鬼型配方编辑器"));
             menu.setPlayerInventoryClickable(true);
@@ -976,7 +1026,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                     getDataHolder(menu).setObject(0,c);
                     menu.replaceExistingItem(recipeTypeSlot,AddUtils.addLore(rtypeIconGen.apply(c),"&a点击切换配方类型"));
                     menu.open(player1);
-                },(c,player1)->AddUtils.sendMessage(player1,"&c请不要使用shift点击"),rtypeIconGen,(p)->menu.open(p));
+                },(c,player1)->AddUtils.sendMessage(player1,"&c请不要使用shift点击"),rtypeIconGen,(cm,p)->menu.open(p));
                 return false;
             }));
             menu.replaceExistingItem(itemGroupSlot,new CustomItemStack(Material.STRUCTURE_VOID,"&a点击选择物品组"));
@@ -985,7 +1035,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                     getDataHolder(menu).setObject(1,c);
                     menu.replaceExistingItem(itemGroupSlot,AddUtils.addLore(itemGroupIconGen.apply(c),"&a点击切换物品组"));
                     menu.open(player1);
-                },(c,player1)->AddUtils.sendMessage(player1,"&c请不要使用shift点击"),itemGroupIconGen,(p)->menu.open(p));
+                },(c,player1)->AddUtils.sendMessage(player1,"&c请不要使用shift点击"),itemGroupIconGen,(cm,p)->menu.open(p));
                 return false;
             }));
             menu.replaceExistingItem(loadSlot,new CustomItemStack(Material.BEACON,"&a点击重新加载当前SF物品",
@@ -1074,17 +1124,33 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                 return false;
             }));
             menu.replaceExistingItem(createSC,new CustomItemStack(Material.ENCHANTED_BOOK,"&a创建新的sf实例","在物品槽放入目标物品,并设置必要参数","","&c采取强制保存模式","&c将所有带nbt的物品创建物品库项目保存","&7会生成大量配置文件","&7不推荐的模式"));
-            menu.replaceExistingItem(clear,new CustomItemStack(Material.BARRIER,"&c清除该物品的全部修改","&c并删除配置文件相关内容","&c谨慎点击!"));
+            ItemStack clearItem=new CustomItemStack(Material.BARRIER,"&c清除该物品的全部修改","&c并删除配置文件相关内容","&c谨慎点击!");
+            ItemStack clearTwice=AddUtils.addLore( new CustomItemStack(Material.BARRIER,"&c清除该物品的全部更改","&e请在5秒内二次确认!","&e请在五秒内二次确认"));
+
+            menu.replaceExistingItem(clear,clearItem);
+            final AtomicBoolean pendingClear=new AtomicBoolean(false);
             menu.addMenuClickHandler(clear,((player, i, itemStack, clickAction) -> {
-                DataMenuClickHandler dh=getDataHolder(menu);
-                String id=dh.getString(0);
-                if(id==null){
-                    AddUtils.sendMessage(player,"&c请先点击加载键加载SF实例");
+                if(!pendingClear.get()){
+                    pendingClear.set(true);
+                    menu.replaceExistingItem(clear,clearTwice);
+                    AddUtils.sendMessage(player,"&e你点击了清除设置按钮!");
+                    AddUtils.sendMessage(player,"&e请在5秒内二次确认你的选择!");
+                    AddUtils.sendMessage(player,"&e五秒过后将自动取消清除");
+                    SlimefunTools.runSyncLater(()->{pendingClear.set(false);menu.replaceExistingItem(clear,clearItem);AddUtils.sendMessage(player,"&a已取消清除物品的全部更改");},100);
+                    return false;
+                }else {
+                    pendingClear.set(false);
+                    menu.replaceExistingItem(clear,clearItem);
+                    DataMenuClickHandler dh=getDataHolder(menu);
+                    String id=dh.getString(0);
+                    if(id==null){
+                        AddUtils.sendMessage(player,"&c请先点击加载键加载SF实例");
+                        return false;
+                    }
+                    deleteSlimefunItemConfig(id);
+                    AddUtils.sendMessage(player,"&c成功撤销所有改动!");
                     return false;
                 }
-                deleteSlimefunItemConfig(id);
-                AddUtils.sendMessage(player,"&c成功撤销所有改动!");
-                return false;
             }));
             menu.replaceExistingItem(displayAllSlot,new CustomItemStack(Material.REPEATING_COMMAND_BLOCK,"&c预览全部已修改物品","&7点击打开预览界面"));
             menu.addMenuClickHandler(displayAllSlot,(((player, i, itemStack, clickAction) -> {
@@ -1109,8 +1175,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
 
     }
     private CustomMenu openEditorGui6x6(Player executor){
-       return  ItemRegister.this.PLAYER_EDITORGUI6X6.computeIfAbsent(executor.getUniqueId(),(s)->new CustomMenu(null,1,PRESET6x6))
-                ;
+       return  ItemRegister.this.PLAYER_EDITORGUI6X6.computeIfAbsent(executor.getUniqueId(),(s)->new CustomMenu(null,1,PRESET6x6));
     }
     private void openDisplayAllModifiedMenu(Player player,ChestMenu backMenu){
         MenuUtils.openSelectMenu(player,1,null,itemModifyRecords,(r,p)->{
@@ -1125,7 +1190,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                 menu.openMenu(p);
             }
         },(r,p)->{},r->AddUtils.addLore(r.getInstance().getItem(),"","&a粘液ID: &f"+r.getInstance().getId(),"&a点击载入配方编辑界面"),backMenu==null?null:
-            backMenu::open);
+            (cm,p)->backMenu.open(p));
     }
     private Pair<List<ItemStack>,List<CustomMenuGroup.CustomMenuClickHandler>> getDisplayed(String stats,String filter){
         switch (stats){
@@ -1212,19 +1277,20 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
             .setDefault("type","3X3")
             .setTabCompletor("type",()->List.of("3X3","6X6","list"))
             .register(this);
-    private SubCommand reloadCommand=new SubCommand("reload",
-            new SimpleCommandArgs(),"/itemreg reload 重载ItemReg配置文件"){
-        @Override
-        public boolean onCommand(CommandSender var1, Command var2, String var3, String[] var4) {
-            reload();
-            AddUtils.sendMessage(var1,"&a重载完成!");
-            return true;
-        }
-    }
-            .register(this);
+//    private SubCommand reloadCommand=new SubCommand("reload",
+//            new SimpleCommandArgs(),"/itemreg reload 重载ItemReg配置文件"){
+//        @Override
+//        public boolean onCommand(CommandSender var1, Command var2, String var3, String[] var4) {
+//            reload();
+//            AddUtils.sendMessage(var1,"&a重载完成!");
+//            return true;
+//        }
+//    }
+//            .register(this);
 
+    //todo 增加危险操作try catch
     public boolean onCommand( CommandSender var1,  Command var2,  String var3, String[] var4){
-        if(var1.hasPermission("slimefuntool.command.itembase")){
+        if(var1.hasPermission("slimefuntool.command.itemreg")){
             if(var4.length>=1){
                 SubCommand command=getSubCommand(var4[0]);
                 if(command!=null){

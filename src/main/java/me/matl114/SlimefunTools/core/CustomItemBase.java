@@ -66,7 +66,7 @@ public class CustomItemBase implements ComplexCommandExecutor, Listener, TabComp
                 }
             }
         }
-        registerCommand();
+        registerFunctional();
         return this;
     }
     public CustomItemBase reload(){
@@ -74,16 +74,25 @@ public class CustomItemBase implements ComplexCommandExecutor, Listener, TabComp
         return init(this.plugin,this.savePath);
     }
     public void deconstruct(){
+        unregisterFunctional();
         this.items.clear();
         this.removeFromRegistry();
     }
-    private CustomItemBase registerCommand(){
-        Validate.isTrue(!registered, "itemBase command have already been registered!");
+    private CustomItemBase registerFunctional(){
+        Validate.isTrue(!registered, "itemBase functional have already been registered!");
         plugin.getServer().getPluginCommand("itembase").setExecutor(this);
         plugin.getServer().getPluginCommand("itembase").setTabCompleter(this);
         this.registered=true;
         return this;
     }
+    private CustomItemBase unregisterFunctional(){
+        Validate.isTrue(registered, "itemBase functional havem't been unregistered!");
+        plugin.getServer().getPluginCommand("itembase").setExecutor(null);
+        plugin.getServer().getPluginCommand("itembase").setTabCompleter(null);
+        this.registered=false;
+        return this;
+    }
+
     @Getter
     private LinkedHashSet<SubCommand> subCommands=new LinkedHashSet<>();
     public void registerSub(SubCommand command){

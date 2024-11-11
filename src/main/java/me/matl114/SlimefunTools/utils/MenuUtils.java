@@ -6,6 +6,7 @@ import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun4.utils.ChatUtils;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import lombok.Getter;
+import me.matl114.SlimefunTools.utils.GuiClass.CustomMenu;
 import me.matl114.SlimefunTools.utils.GuiClass.CustomMenuGroup;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
@@ -77,8 +78,11 @@ public class MenuUtils {
     public static ItemStack getSearchOffButton(){
         return new CustomItemStack(SEARCH_OFF_BUTTON);
     }
-
     public static  <T extends Object> Pair<List<ItemStack>,List<CustomMenuGroup.CustomMenuClickHandler>> getSelector(String filter, BiConsumer<T, Player> clickCallback, BiConsumer<T,Player> shiftClickCallback, Iterator<Map.Entry<String,T>> objectIterator, Function<T,ItemStack> iconGenerator ){
+        return  getSelector(filter,cm->clickCallback,cm->shiftClickCallback,objectIterator,iconGenerator);
+    }
+
+    public static  <T extends Object> Pair<List<ItemStack>,List<CustomMenuGroup.CustomMenuClickHandler>> getSelector(String filter,Function< CustomMenu,BiConsumer<T, Player>> clickCallback,Function<CustomMenu, BiConsumer<T,Player>> shiftClickCallback, Iterator<Map.Entry<String,T>> objectIterator, Function<T,ItemStack> iconGenerator ){
         List<ItemStack> itemlist=new ArrayList<>();
         List<CustomMenuGroup.CustomMenuClickHandler> handlerlist=new ArrayList<>();
         while(objectIterator.hasNext()){
@@ -92,19 +96,25 @@ public class MenuUtils {
             itemlist.add(stack);
             handlerlist.add((cm)->((player, i, itemStack, clickAction) -> {
                 if(clickAction.isShiftClicked()){
-                    shiftClickCallback.accept(value,player);
+                    shiftClickCallback.apply(cm).accept(value,player);
                 }else {
-                    clickCallback.accept(value,player);
+                    clickCallback.apply(cm).accept(value,player);
                 }
                 return false;
             }));
         }
         return new Pair<>(itemlist,handlerlist);
     }
+    public static <T extends Object> void openSelectMenu(Player player, int page, String filter, HashMap<String, T> dataMap, BiConsumer<T, Player> clickCallback, BiConsumer<T, Player> shiftClickCallback, Function<T, ItemStack> iconGenerator,BiConsumer<CustomMenu,Player> fallback){
+        openSelectMenu(player,page,filter,dataMap,(cm)->clickCallback,(cm)->shiftClickCallback,iconGenerator,null);
+    }
     public static <T extends Object> void openSelectMenu(Player player, int page, String filter, HashMap<String, T> dataMap, BiConsumer<T, Player> clickCallback, BiConsumer<T, Player> shiftClickCallback, Function<T, ItemStack> iconGenerator){
         openSelectMenu(player,page,filter,dataMap,clickCallback,shiftClickCallback,iconGenerator,null);
     }
-    public static  <T extends Object> void openSelectMenu(Player player, int page, String filter, HashMap<String,T> dataMap, BiConsumer<T,Player> clickCallback, BiConsumer<T,Player> shiftClickCallback, Function<T,ItemStack> iconGenerator, Consumer<Player> fallbackHandler){
+    public static <T extends Object> void openSelectMenu(Player player, int page, String filter, HashMap<String, T> dataMap, Function<CustomMenu,BiConsumer<T, Player>> clickCallback, Function<CustomMenu,BiConsumer<T, Player>> shiftClickCallback, Function<T, ItemStack> iconGenerator){
+        openSelectMenu(player,page,filter,dataMap,clickCallback,shiftClickCallback,iconGenerator,null);
+    }
+    public static  <T extends Object> void openSelectMenu(Player player, int page, String filter, HashMap<String,T> dataMap, Function<CustomMenu,BiConsumer<T, Player>> clickCallback, Function<CustomMenu,BiConsumer<T, Player>> shiftClickCallback, Function<T,ItemStack> iconGenerator, BiConsumer<CustomMenu,Player> fallbackHandler){
         if(page<=0){
             AddUtils.sendMessage(player,"&c无效的页数!");
             return;
@@ -135,7 +145,7 @@ public class MenuUtils {
             menuGroup.setOverrideItem(53,MenuUtils.getSearchOffButton(),(cm)->((player1, i, itemStack, clickAction) -> {openSelectMenu(player1,1,null,dataMap,clickCallback,shiftClickCallback,iconGenerator,fallbackHandler);;return false;}));
         }
         if(fallbackHandler!=null){
-            menuGroup.setOverrideItem(49,MenuUtils.getBackButton(),(cm)->(player1, i, itemStack, clickAction) -> {fallbackHandler.accept(player1);return false;});
+            menuGroup.setOverrideItem(49,MenuUtils.getBackButton(),(cm)->(player1, i, itemStack, clickAction) -> {fallbackHandler.accept(cm,player1);return false;});
         }else {
             menuGroup.setOverrideItem(49,MenuUtils.getBackButton("&c没有返回路径","&c哈哈哈"),CustomMenuGroup.CustomMenuClickHandler.ofEmpty());
         }

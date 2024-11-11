@@ -23,6 +23,9 @@ public class CommandUtils {
             return defaultValue;
         }
     }
+    public static int validRange(int value,int min,int max){
+        return Math.max( Math.min(max,value),min);
+    }
 
 
 

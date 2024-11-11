@@ -18,12 +18,16 @@ public class CustomMenu {
         this(parent, page, null);
 
     }
+    @Getter
+    IntFunction<ChestMenu> preset;
     public CustomMenu(CustomMenuGroup parent, int page, IntFunction<ChestMenu> generator) {
+        assert parent != null||generator != null;
         this.parent = parent;
         this.page = page;
+        this.preset = generator;
         this.menu=generator==null?new ChestMenu(parent.getTitle()): generator.apply(page);
-
     }
+
     public void loadInternal(){
 
     }

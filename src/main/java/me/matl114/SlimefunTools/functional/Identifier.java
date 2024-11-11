@@ -78,15 +78,25 @@ public class Identifier<T extends Object> implements DynamicFunctional{
     }};
     public Object get(T instance,String attrName){
         if(getter.containsKey(attrName)){
-
-            return getter.get(attrName).apply(instance);
+            try{
+                return getter.get(attrName).apply(instance);
+            }catch (Throwable e){
+                Debug.logger("An internal error occured while getting attribute "+attrName+" in "+identifier.getName(),"instance",instance);
+                Debug.logger(e);
+                return null;
+            }
         }else {
             throw new RuntimeException("Unregistered attribute "+attrName+" for getter in"+identifier.getName());
         }
     }
     public void set(T instance,String attrName,Object value){
         if(setters.containsKey(attrName)){
-            setters.get(attrName).accept(instance,value);
+            try{
+                setters.get(attrName).accept(instance,value);
+            }catch (Throwable e){
+                Debug.logger("An internal error occured while setting attribute "+attrName+" in "+identifier.getName(),"instance",instance);
+                Debug.logger(e);
+            }
         }else {
             throw new RuntimeException("Unregistered attribute "+attrName+" for setter in"+identifier.getName());
         }
@@ -98,7 +108,13 @@ public class Identifier<T extends Object> implements DynamicFunctional{
                 DifferenceJudger<T> cmp=comparator.get(attrName);
 
                 if(clazz.isInstance(value1)&&clazz.isInstance(value2)){
-                    return !cmp.judge(instance1,value1,value2);
+                    try{
+                        return !cmp.judge(instance1,value1,value2);
+                    }catch (Throwable e){
+                        Debug.logger("An internal error occured while comparing attribute "+attrName+" in "+identifier.getName(),"instance",instance1);
+                        Debug.logger(e);
+                        return false;
+                    }
                 }else {
                     return true;
                 }
@@ -120,7 +136,7 @@ public class Identifier<T extends Object> implements DynamicFunctional{
     }
     public boolean different(T instance1,String attrName,Object val){
         Object val1=get(instance1,attrName);
-        return different(instance1,attrName,val,val1);
+        return different(instance1,attrName,val1,val);
     }
     public boolean different(T instance1,String attrName,Object val,Object val1){
         if(val1==val){
