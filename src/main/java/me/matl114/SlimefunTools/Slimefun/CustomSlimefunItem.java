@@ -6,7 +6,7 @@ import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.commons.lang.Validate;
 import me.matl114.SlimefunTools.implement.Debug;
-import me.matl114.SlimefunTools.utils.ReflectUtils;
+import me.matl114.matlib.Utils.Reflect.ReflectUtils;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
 import org.bukkit.inventory.ItemStack;
@@ -48,13 +48,13 @@ public class CustomSlimefunItem extends SlimefunItem {
     }
     public final void addHandlerForce(ItemHandler... handlers) {
         ItemState state= getState();
-        ReflectUtils.invokeSetRecursively(this,"state",ItemState.UNREGISTERED);
+        ReflectUtils.setFieldRecursively(this,"state",ItemState.UNREGISTERED);
         try{
             addItemHandler(handlers);
         }catch (Throwable e){
             e.printStackTrace();
         }
-        ReflectUtils.invokeSetRecursively(this,"state",state);
+        ReflectUtils.setFieldRecursively(this,"state",state);
     }
     public CustomSlimefunItem setDisplayRecipes(List<ItemStack> displayRecipes) {
         this.originalMemory = displayRecipes;

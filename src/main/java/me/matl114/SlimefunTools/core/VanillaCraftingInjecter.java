@@ -2,7 +2,6 @@ package me.matl114.SlimefunTools.core;
 
 import com.google.common.base.Preconditions;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.commons.lang.Validate;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
@@ -12,27 +11,26 @@ import io.github.thebusybiscuit.slimefun4.utils.ChatUtils;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import lombok.Getter;
 import me.matl114.SlimefunTools.functional.*;
-import me.matl114.SlimefunTools.implement.ConfigLoader;
+import me.matl114.SlimefunTools.implement.Configs;
 import me.matl114.SlimefunTools.implement.Debug;
 import me.matl114.SlimefunTools.implement.SlimefunTools;
-import me.matl114.SlimefunTools.utils.AddUtils;
-import me.matl114.SlimefunTools.utils.CommandClass.CommandUtils;
-import me.matl114.SlimefunTools.utils.CommandClass.ComplexCommandExecutor;
-import me.matl114.SlimefunTools.utils.CommandClass.SimpleCommandArgs;
-import me.matl114.SlimefunTools.utils.CommandClass.SubCommand;
-import me.matl114.SlimefunTools.utils.GuiClass.CustomMenu;
-import me.matl114.SlimefunTools.utils.GuiClass.CustomMenuGroup;
-import me.matl114.SlimefunTools.utils.GuiClass.DataMenuClickHandler;
-import me.matl114.SlimefunTools.utils.MenuUtils;
-import me.matl114.SlimefunTools.utils.ReflectUtils;
-import me.matl114.SlimefunTools.utils.Settings;
-import me.matl114.SlimefunTools.utils.StructureClass.Manager;
-import me.matl114.SlimefunTools.utils.StructureClass.StringHashMap;
+import me.matl114.matlib.Utils.AddUtils;
+import me.matl114.matlib.Utils.Algorithm.StringHashMap;
+import me.matl114.matlib.Utils.Command.CommandGroup.ComplexCommandExecutor;
+import me.matl114.matlib.Utils.Command.CommandGroup.SubCommand;
+import me.matl114.matlib.Utils.Command.CommandUtils;
+import me.matl114.matlib.Utils.Command.Params.SimpleCommandArgs;
+import me.matl114.matlib.Utils.ConfigLoader;
+import me.matl114.matlib.Utils.Menu.MenuClickHandler.DataContainer;
+import me.matl114.matlib.Utils.Menu.MenuGroup.CustomMenu;
+import me.matl114.matlib.Utils.Menu.MenuGroup.CustomMenuGroup;
+import me.matl114.matlib.Utils.Menu.MenuUtils;
+import me.matl114.matlib.Utils.Reflect.ReflectUtils;
+import me.matl114.matlib.Utils.Settings;
+import me.matl114.matlib.core.Manager;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -59,7 +57,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class VanillaCraftingInjecter implements Manager , Listener, ComplexCommandExecutor, TabCompleter {
+public class VanillaCraftingInjecter implements Manager, Listener, ComplexCommandExecutor, TabCompleter {
     Plugin plugin;
     @Getter
     private VanillaCraftingInjecter manager;
@@ -415,7 +413,7 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
         return setShapedRecipeChoices(vanillaRecipe,inputChoice,3,3);
     }
     private ShapedRecipe setShapedRecipeChoices(ShapedRecipe vanillaRecipe,RecipeChoice[] inputChoice,int width,int height){
-        ReflectUtils.invokeSetRecursively(vanillaRecipe,ShapedRecipe.class,"ingredients",new HashMap<>());
+        ReflectUtils.setFieldRecursively(vanillaRecipe,ShapedRecipe.class,"ingredients",new HashMap<>());
         inputChoice=Arrays.copyOf(inputChoice,width*height);
         String[] pattern=new String[height];
         for(int i=0;i<height;i++){
@@ -1036,12 +1034,12 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
         int clearSlot=8;
         int selectAllModifies=0;
         int enableSlot=44;
-        public DataMenuClickHandler getDataHolder(ChestMenu menu){
+        public DataContainer getDataHolder(ChestMenu menu){
             ChestMenu.MenuClickHandler handler=menu.getMenuClickHandler(dataHolderSlot);
-            if(handler instanceof DataMenuClickHandler dh){
+            if(handler instanceof DataContainer dh){
                 return dh;
             }else {
-                DataMenuClickHandler dh=new DataMenuClickHandler() {
+                DataContainer dh=new DataContainer() {
                     //type
                     String type;
                     //recipeChoices
@@ -1364,7 +1362,7 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
                 }else {
                     pendingClear.set(false);
                     menu.replaceExistingItem(clearSlot,clearItem);
-                    DataMenuClickHandler dh=getDataHolder(menu);
+                    DataContainer dh=getDataHolder(menu);
                     NamespacedKey id=ofNSKey( dh.getString(1));
                     if(id==null){
                         AddUtils.sendMessage(player,"&c请先加载一个有效的id");
@@ -1484,11 +1482,11 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
                     (c)->{ return AddUtils.addLore(shapedIconGen.apply(c),"&a点击拷贝","&ashift点击查看详细信息");
             });
             case "unshaped":return MenuUtils.getSelector(filter==null?null:filter.toLowerCase(),
-                    (cm)->(s,player)->AddUtils.displayCopyString(player,"单击此处拷贝字符串","点击复制到剪贴板",s.getKey().toString()),
+                    (cm)->(s,player)-> AddUtils.displayCopyString(player,"单击此处拷贝字符串","点击复制到剪贴板",s.getKey().toString()),
                     (cm)->(s,player)->{
                         CustomMenu menu= opeKeyedRecipeInfo(s);
                         menu.getMenu().addMenuClickHandler(0,((player1, i, itemStack, clickAction) ->{ cm.getMenu().open(player1);return false;}));
-                        menu.getMenu().replaceExistingItem(0,MenuUtils.getBackButton("&f返回列表"));
+                        menu.getMenu().replaceExistingItem(0, MenuUtils.getBackButton("&f返回列表"));
                         menu.openMenu(player);
                     },
                     getUnshapedRecipeMap().entrySet().iterator(),
@@ -1504,6 +1502,12 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
     public void registerSub(SubCommand command){
         subCommands.add(command);
     }
+
+    @Override
+    public SubCommand getMainCommand() {
+        return mainCommand;
+    }
+
     public SubCommand getSubCommand(String name){
         for(SubCommand command:subCommands){
             if(command.getName().equals(name)){

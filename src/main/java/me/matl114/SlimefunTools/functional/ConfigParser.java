@@ -6,9 +6,10 @@ import io.github.thebusybiscuit.slimefun4.libraries.dough.config.Config;
 import me.matl114.SlimefunTools.core.CustomItemBase;
 import me.matl114.SlimefunTools.core.ItemRegister;
 import me.matl114.SlimefunTools.implement.Debug;
-import me.matl114.SlimefunTools.utils.CommandClass.CommandUtils;
-import me.matl114.SlimefunTools.utils.StructureClass.StringHashMap;
-import me.matl114.SlimefunTools.utils.Utils;
+
+import me.matl114.matlib.Utils.Algorithm.StringHashMap;
+import me.matl114.matlib.Utils.Command.CommandUtils;
+import me.matl114.matlib.Utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;

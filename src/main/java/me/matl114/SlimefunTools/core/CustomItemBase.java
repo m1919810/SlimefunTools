@@ -5,13 +5,16 @@ import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import lombok.Getter;
 import me.matl114.SlimefunTools.implement.Debug;
 import me.matl114.SlimefunTools.implement.SlimefunTools;
-import me.matl114.SlimefunTools.utils.AddUtils;
-import me.matl114.SlimefunTools.utils.Utils;
-import me.matl114.SlimefunTools.utils.CommandClass.*;
-import me.matl114.SlimefunTools.utils.FileUtils;
-import me.matl114.SlimefunTools.utils.GuiClass.CustomMenuGroup;
-import me.matl114.SlimefunTools.utils.SerializeUtils;
-import me.matl114.SlimefunTools.utils.StructureClass.Manager;
+import me.matl114.matlib.Utils.AddUtils;
+import me.matl114.matlib.Utils.Command.CommandGroup.ComplexCommandExecutor;
+import me.matl114.matlib.Utils.Command.CommandGroup.SubCommand;
+import me.matl114.matlib.Utils.Command.CommandUtils;
+import me.matl114.matlib.Utils.Command.Params.SimpleCommandArgs;
+import me.matl114.matlib.Utils.FileUtils;
+import me.matl114.matlib.Utils.Menu.MenuGroup.CustomMenuGroup;
+import me.matl114.matlib.Utils.PersistentDataContainer.SerializeUtils;
+import me.matl114.matlib.Utils.Utils;
+import me.matl114.matlib.core.Manager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -56,7 +59,7 @@ public class CustomItemBase implements ComplexCommandExecutor, Listener, TabComp
                     Debug.logger("加载自定义物品: "+name);
                     try{
                         String content= Files.readString(file.toPath());
-                        ItemStack stack= SerializeUtils.deserializeFromString(content);
+                        ItemStack stack= SerializeUtils.deserializeItemStack(content);
                         items.put(name,stack);
                         //Debug.logger("成功加载自定义物品: "+name);
                     }catch (Throwable e){
@@ -98,6 +101,12 @@ public class CustomItemBase implements ComplexCommandExecutor, Listener, TabComp
     public void registerSub(SubCommand command){
         subCommands.add(command);
     }
+
+    @Override
+    public SubCommand getMainCommand() {
+        return mainCommand;
+    }
+
     public SubCommand getSubCommand(String name){
         for(SubCommand command:subCommands){
             if(command.getName().equals(name)){
@@ -185,7 +194,7 @@ public class CustomItemBase implements ComplexCommandExecutor, Listener, TabComp
     public boolean addItem(ItemStack item,String itemName){
         item=new ItemStack(item);
         item.setAmount(1);
-        String savedString=SerializeUtils.serializeToString(item);
+        String savedString=SerializeUtils.serializeItemStack(item);
         try{
             File file= FileUtils.getOrCreateFile(savePath +'/'+itemName+".yml");
             Files.writeString(file.toPath(),savedString);
@@ -193,7 +202,7 @@ public class CustomItemBase implements ComplexCommandExecutor, Listener, TabComp
             Debug.logger(e);
             return false;
         }
-        items.put(itemName,SerializeUtils.deserializeFromString(savedString));
+        items.put(itemName,SerializeUtils.deserializeItemStack(savedString));
         return true;
     }
     public ItemStack getItem(String name){
@@ -284,7 +293,7 @@ public class CustomItemBase implements ComplexCommandExecutor, Listener, TabComp
                     player= Bukkit.getPlayerExact(playerName);
                 }
                 if(player!=null){
-                    int amount=CommandUtils.parseIntOrDefault(
+                    int amount= CommandUtils.parseIntOrDefault(
                             inputInfo.nextArg()
                             ,1);
                     AddUtils.forceGive(player,item.clone(),amount);

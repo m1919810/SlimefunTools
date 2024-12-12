@@ -3,7 +3,8 @@ package me.matl114.SlimefunTools.functional;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.config.Config;
 import lombok.Getter;
 import me.matl114.SlimefunTools.implement.Debug;
-import me.matl114.SlimefunTools.utils.Utils;
+
+import me.matl114.matlib.Utils.Utils;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;

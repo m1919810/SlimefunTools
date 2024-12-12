@@ -22,20 +22,22 @@ import me.matl114.SlimefunTools.Slimefun.CustomRecipeType;
 import me.matl114.SlimefunTools.Slimefun.CustomSlimefunItem;
 import me.matl114.SlimefunTools.Slimefun.core.CustomSlimefunItemRegisterEvent;
 import me.matl114.SlimefunTools.functional.*;
-import me.matl114.SlimefunTools.implement.ConfigLoader;
+import me.matl114.SlimefunTools.implement.Configs;
 import me.matl114.SlimefunTools.implement.Debug;
 import me.matl114.SlimefunTools.implement.SlimefunTools;
-import me.matl114.SlimefunTools.utils.*;
-import me.matl114.SlimefunTools.utils.CommandClass.CommandUtils;
-import me.matl114.SlimefunTools.utils.CommandClass.ComplexCommandExecutor;
-import me.matl114.SlimefunTools.utils.CommandClass.SimpleCommandArgs;
-import me.matl114.SlimefunTools.utils.CommandClass.SubCommand;
-import me.matl114.SlimefunTools.utils.GuiClass.CustomMenu;
-import me.matl114.SlimefunTools.utils.GuiClass.CustomMenuGroup;
-import me.matl114.SlimefunTools.utils.GuiClass.DataMenuClickHandler;
-import me.matl114.SlimefunTools.utils.MenuClass.CustomItemGroup;
-import me.matl114.SlimefunTools.utils.MenuClass.DummyItemGroup;
-import me.matl114.SlimefunTools.utils.StructureClass.Manager;
+import me.matl114.matlib.Utils.*;
+import me.matl114.matlib.Utils.Command.CommandGroup.ComplexCommandExecutor;
+import me.matl114.matlib.Utils.Command.CommandGroup.SubCommand;
+import me.matl114.matlib.Utils.Command.CommandUtils;
+import me.matl114.matlib.Utils.Command.Params.SimpleCommandArgs;
+import me.matl114.matlib.Utils.Menu.GuideMenu.CustomItemGroup;
+import me.matl114.matlib.Utils.Menu.GuideMenu.DummyItemGroup;
+import me.matl114.matlib.Utils.Menu.MenuClickHandler.DataContainer;
+import me.matl114.matlib.Utils.Menu.MenuGroup.CustomMenu;
+import me.matl114.matlib.Utils.Menu.MenuGroup.CustomMenuGroup;
+import me.matl114.matlib.Utils.Menu.MenuUtils;
+import me.matl114.matlib.Utils.Reflect.ReflectUtils;
+import me.matl114.matlib.core.Manager;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
 import org.bukkit.Material;
@@ -57,7 +59,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-public class ItemRegister implements Manager , ComplexCommandExecutor, TabCompleter {
+public class ItemRegister implements Manager, ComplexCommandExecutor, TabCompleter {
     HashMap<String, SlimefunItem> registeredItems=new LinkedHashMap<>();
     HashMap<String, ItemGroup> registeredGroups =new LinkedHashMap<>();
     private boolean registered=false;
@@ -116,11 +118,11 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                 ItemStack stack=(ItemStack)obj;
                 SlimefunItemStack stack1=new SlimefunItemStack(item.getId(),stack);
                 ItemStack stack2= item.getItem();
-                Boolean has=(Boolean) ReflectUtils.invokeGetRecursively(stack2,Settings.FIELD,"locked");
-                ReflectUtils.invokeSetRecursively(stack2,"locked",false);
+                Boolean has=(Boolean) ReflectUtils.invokeGetRecursively(stack2, Settings.FIELD,"locked");
+                ReflectUtils.setFieldRecursively(stack2,"locked",false);
                 AddUtils.copyItem(stack1,stack2);
                 if(has!=null){
-                    ReflectUtils.invokeSetRecursively(stack2,"locked",has);
+                    ReflectUtils.setFieldRecursively(stack2,"locked",has);
                 }
 //                if(!ReflectUtils.invokeSetRecursively(item,"itemStackTemplate",stack1)){
 //                    Debug.logger("Failed to override slimefun item Item",item.getId());
@@ -146,7 +148,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                 if(is6x6(type)){
                     ItemStack[] recipes=slimefunItem.getRecipe();
                     recipes=Arrays.copyOf(recipes,36);
-                    if(!ReflectUtils.invokeSetRecursively(slimefunItem,SlimefunItem.class,"recipe",recipes)){
+                    if(!ReflectUtils.setFieldRecursively(slimefunItem,SlimefunItem.class,"recipe",recipes)){
                         Debug.logger("Failed to override slimefun item Recipe while setting 6x6 recipe",slimefunItem.getId());
                     }
                 }
@@ -206,7 +208,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                     }
                 }
                 if(needResize){
-                    if(!ReflectUtils.invokeSetRecursively(slimefunItem,SlimefunItem.class,"recipe",recipe)){
+                    if(!ReflectUtils.setFieldRecursively(slimefunItem,SlimefunItem.class,"recipe",recipe)){
                         Debug.logger("Failed to override slimefun item Recipe",slimefunItem.getId());
                     }
                 }else{
@@ -448,7 +450,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
             boolean hasItemId=itemConfig.contains(c(item,"item"));
             String itemId=itemConfig.getString(c(item,"item"));
             boolean hasRecipe=itemConfig.contains(c(item,"recipe"));
-            List<String> recipe=Utils.orDefault(itemConfig.getStringList(c(item,"recipe")),new ArrayList<>());
+            List<String> recipe= Utils.orDefault(itemConfig.getStringList(c(item,"recipe")),new ArrayList<>());
             boolean hasRecipeType=itemConfig.contains(c(item,"rtype"));
 
             String recipeType=itemConfig.getString(c(item,"rtype"));
@@ -507,7 +509,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
             String entry=iter.next();
             String item=groupConfig.getString(c(entry,"item"));
             ItemStack icon=item==null?null:git(groupConfig.getString(c(entry,"item")));
-            Integer tier=CommandUtils.parseIntegerOrDefault( groupConfig.getString(c(entry,"tier")),null);
+            Integer tier= CommandUtils.parseIntegerOrDefault( groupConfig.getString(c(entry,"tier")),null);
             if(icon==null&&item!=null){
                 Debug.logger("物品组 ",entry,": Unknown icon id ",item);
                 continue;
@@ -732,9 +734,9 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
         this.addToRegistry();
         this.plugin=plugin;
         this.itemPath=savePath[0];
-        this.itemConfig=ConfigLoader.loadExternalConfig(itemPath);
+        this.itemConfig= ConfigLoader.loadExternalConfig(itemPath);
         this.groupPath=savePath[1];
-        this.groupConfig=ConfigLoader.loadExternalConfig(groupPath);
+        this.groupConfig= ConfigLoader.loadExternalConfig(groupPath);
         //init fuunctional parts which needs configs file
         this.initStats();
         //init functional parts
@@ -953,12 +955,12 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
          int createSC=35;
          int clear=25;
          int loadSlot=23;
-        public DataMenuClickHandler getDataHolder(ChestMenu menu){
+        public DataContainer getDataHolder(ChestMenu menu){
             ChestMenu.MenuClickHandler handler=menu.getMenuClickHandler(dataSlot);
-            if(handler instanceof DataMenuClickHandler dh){
+            if(handler instanceof DataContainer dh){
                 return dh;
             }else {
-                DataMenuClickHandler dh=new DataMenuClickHandler() {
+                DataContainer dh=new DataContainer() {
                     Object recipeType;
                     Object itemGroup;
                     String id;
@@ -975,7 +977,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
             }
         }
         public void provideSfInstanceInfoOrFail(ChestMenu menu,SfItemArgumentConsumer consumer,Consumer<String> outputError){
-            DataMenuClickHandler dh=getDataHolder(menu);
+            DataContainer dh=getDataHolder(menu);
             String id=dh.getString(0);
             if(id==null){
                 outputError.accept("&c请先点击加载键加载SF实例");
@@ -1163,7 +1165,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
                 }else {
                     pendingClear.set(false);
                     menu.replaceExistingItem(clear,clearItem);
-                    DataMenuClickHandler dh=getDataHolder(menu);
+                    DataContainer dh=getDataHolder(menu);
                     String id=dh.getString(0);
                     if(id==null){
                         AddUtils.sendMessage(player,"&c请先点击加载键加载SF实例");
@@ -1236,6 +1238,12 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
     public void registerSub(SubCommand command){
         subCommands.add(command);
     }
+
+    @Override
+    public SubCommand getMainCommand() {
+        return mainCommand;
+    }
+
     public SubCommand getSubCommand(String name){
         for(SubCommand command:subCommands){
             if(command.getName().equals(name)){
