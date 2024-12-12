@@ -37,7 +37,6 @@ public class SlimefunTools extends JavaPlugin implements   SlimefunAddon {
     }
     public void onDisable() {
         addon.onDisable();
-        Debug
         Manager.onDisable();
         DynamicFunctional.onFunctionalUnitDisable();
     }
