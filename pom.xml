@@ -46,6 +46,13 @@
                 <version>3.5.0</version>
                 <configuration>
                     <minimizeJar>true</minimizeJar>
+                    <relocations>
+                        <relocation>
+                            <pattern>me.matl114.matlib</pattern>
+                            <shadedPattern>me.matl114.SlimefunTools.matlib</shadedPattern>
+                        </relocation>
+
+                    </relocations>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
@@ -95,6 +102,12 @@
             <artifactId>lombok</artifactId>
             <version>1.18.34</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.m1919810</groupId>
+            <artifactId>matlib</artifactId>
+            <version>-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

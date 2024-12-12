@@ -2,7 +2,9 @@ package me.matl114.SlimefunTools.core;
 
 import com.google.common.base.Preconditions;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
+import io.github.thebusybiscuit.slimefun4.api.geo.GEOResource;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
+import io.github.thebusybiscuit.slimefun4.api.items.ItemHandler;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.items.groups.FlexItemGroup;
@@ -376,11 +378,13 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
 //            return defaultName;
 //        });
 //    }
+    @Getter
+    private DummyItemGroup functionalGroup;
     public void loadConfigs(){
-        DummyItemGroup funcgroup=new DummyItemGroup(new NamespacedKey("slimefuntools","functional"),FUNCTIONAL.clone(),true,true);
+        functionalGroup=new DummyItemGroup(new NamespacedKey("slimefuntools","functional"),FUNCTIONAL.clone(),true,true);
         //these part of
-        registeredGroups.put("slimefuntools:functional",funcgroup);
-        this.groups.put("slimefuntools:functional",funcgroup);
+        registeredGroups.put("slimefuntools:functional",functionalGroup);
+        this.groups.put("slimefuntools:functional",functionalGroup);
         Set<String> groups=groupConfig.getKeys();
 
         HashSet<String> postRegisterIcon=new HashSet<>();
@@ -748,6 +752,7 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
     }
     public void deconstruct(){
         this.removeFromRegistry();
+        unregisterFunctional();
         for(InstanceModifyRecord<SlimefunItem> record:this.itemModifyRecords.values()){
             record.executeUndoAllModifications();
         }
@@ -798,8 +803,25 @@ public class ItemRegister implements Manager , ComplexCommandExecutor, TabComple
      * @return
      */
     public void unregisterSlimefunItem(SlimefunItem item){
+        Iterator<ItemHandler> handlers= item.getHandlers().iterator();
+        while(handlers.hasNext()){
+            ItemHandler handler=handlers.next();
+            try{
+                var re=Slimefun.getRegistry().getGlobalItemHandlers().get(handler.getIdentifier());
+                if(re!=null){
+                    re.remove(handler);
+                }
+            }catch (Throwable e){
+                Debug.logger(e);
+            }
+        }
         item.disable();
         Slimefun.getRegistry().getAllSlimefunItems().remove(item);
+        Slimefun.getRegistry().getSlimefunItemIds().remove(item.getId());
+        Slimefun.getRegistry().getDisabledSlimefunItems().remove(item);
+        if(item instanceof GEOResource geo){
+            Slimefun.getRegistry().getGEOResources().remove(geo.getKey());
+        }
         item.getItemGroup().remove(item);
     }
     public void disableItemGroup(ItemGroup group){

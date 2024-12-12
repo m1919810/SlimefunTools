@@ -1,19 +1,21 @@
 package me.matl114.SlimefunTools.Slimefun;
 
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
-import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
-import io.github.thebusybiscuit.slimefun4.api.items.ItemHandler;
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
+import io.github.thebusybiscuit.slimefun4.api.items.*;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import io.github.thebusybiscuit.slimefun4.libraries.commons.lang.Validate;
 import me.matl114.SlimefunTools.implement.Debug;
+import me.matl114.SlimefunTools.utils.ReflectUtils;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
+import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
+import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +45,16 @@ public class CustomSlimefunItem extends SlimefunItem {
     public CustomSlimefunItem addHandler(ItemHandler handler) {
         this.addItemHandler(handler);
         return this;
+    }
+    public final void addHandlerForce(ItemHandler... handlers) {
+        ItemState state= getState();
+        ReflectUtils.invokeSetRecursively(this,"state",ItemState.UNREGISTERED);
+        try{
+            addItemHandler(handlers);
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
+        ReflectUtils.invokeSetRecursively(this,"state",state);
     }
     public CustomSlimefunItem setDisplayRecipes(List<ItemStack> displayRecipes) {
         this.originalMemory = displayRecipes;

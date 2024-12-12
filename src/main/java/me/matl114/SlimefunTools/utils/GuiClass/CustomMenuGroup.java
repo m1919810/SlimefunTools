@@ -41,6 +41,7 @@ public class CustomMenuGroup {
     @Getter
     int next;
     boolean enablePageChangeSlot;
+    //todo changed to suppilers
     List<ItemStack> items=new ArrayList<>();
     List<CustomMenuClickHandler> handlers=new ArrayList<>();
     HashMap<Integer,ItemStack> overrideItem=new HashMap<>();

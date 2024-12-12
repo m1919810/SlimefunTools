@@ -2,6 +2,7 @@ package me.matl114.SlimefunTools.core;
 
 import com.google.common.base.Preconditions;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.commons.lang.Validate;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
@@ -30,6 +31,8 @@ import me.matl114.SlimefunTools.utils.StructureClass.StringHashMap;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -94,9 +97,7 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
             .setComparator("recipe",(r,o1,o2)->{
                 RecipeChoice[] r1=(RecipeChoice[])o1;
                 RecipeChoice[] r2=(RecipeChoice[])o2;
-                Debug.logger("shapedRecipe recipe comparator called");
                 boolean result= compareShapedRecipeChoice(r1,r2);
-                Debug.logger("result ",String.valueOf(result));
                 return result;
             })
             .setType("recipe",RecipeChoice[].class)
@@ -209,7 +210,6 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
                 }else {
                     RecipeConstructor constructor=recipeClassConstructor.get(type);
                     NamespacedKey key=ofNSKey(id);
-                    Debug.logger("remove origin recipe ",key);
                     Bukkit.removeRecipe(key);
                     Recipe newRecipe=constructor.getRecipe(key,getRecipeChoice(),getOutput(), getExtraData());
                     if(enable){
@@ -242,7 +242,6 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
             return ((RecipeChoice[]) identifier.get(recipe,"recipe") ).clone();
         }
         public void setRecipeChoice(RecipeChoice[] ingred){
-            Debug.logger("this recipe type",recipe.getClass());
             identifier.set(recipe,"recipe",ingred);
         }
         public RecipeAccessor register(){
@@ -261,7 +260,6 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
          */
         public void reloadRecipe(){
             NamespacedKey key=ofNSKey(id);
-            Debug.logger("remove origin recipe ",key);
             Bukkit.removeRecipe(key);
             if(this.enable){
                 Bukkit.addRecipe(recipe);
@@ -564,38 +562,32 @@ public class VanillaCraftingInjecter implements Manager , Listener, ComplexComma
         );
         boolean changeTaken=false;
         if(type!=null&&record.checkDifference("type",type)){
-            Debug.logger("save type");
             record.executeModification("type",type);
             record.executeDataSave("type",saveMethod);
             changeTaken=true;
         }
         if(recipe!=null&&record.checkDifference("recipe",recipe)){
-            Debug.logger("save recipe");
             record.executeModification("recipe",recipe);
             record.executeDataSave("recipe",saveMethod,()->key.getNamespace()+"_"+key.getKey()+"_vanila_crafting_recipeChoice_");
             changeTaken=true;
         }
         if(output!=null&&record.checkDifference("output",output)){
-            Debug.logger("save output");
             record.executeModification("output",output);
             record.executeDataSave("output",saveMethod,()->"_"+key.getNamespace()+"_"+key.getKey()+"_vanilla_crafting_output_");
             changeTaken=true;
         }
         if(elseData!=null&&record.checkDifference("extraData",elseData)){
-            Debug.logger("save extraData");
             record.executeModification("extraData",elseData);
             record.executeDataSave("extraData",saveMethod);
             changeTaken=true;
         }
         if(enable!=null&&record.checkDifference("enable",enable)){
-            Debug.logger("save enable");
             record.executeModification("enable",enable);
             record.executeDataSave("enable",saveMethod);
             changeTaken=true;
         }
 
         if(changeTaken){
-            Debug.logger("reload Recipe");
             record.getInstance().reloadRecipe();
         }
     }
