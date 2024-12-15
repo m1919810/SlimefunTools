@@ -317,53 +317,78 @@ public class ScriptTests implements Manager {
     public void testRunEntityTick(PlayerRightClickEvent event,String[] args){
         Optional<Block> b= event.getClickedBlock();
         if(b.isPresent()){
-            Debug.logger("block present");
-            Block bb=b.get();
-            getHandleMethodAccess.invokeCallback((levelAccess)->{
-                getPositionMethodAccess.invokeCallback((blockPos)->{
-                    getBlockEntityMethodAccess.invokeCallback((blockEntity)->{
-                        if(blockEntity!=null){
-                            getNMSMethodAccess.invokeCallback((state)->{
-                                getNMSBlockType.invokeCallback((block)->{
-                                    getBlockEntityTypeMethodAccess.invokeCallback((type)->{
-                                        getCraftWorldHandleMethodAccess.invokeCallback((world)->{
-                                            try{
-                                                if(iTileEntityInterface==null){
-                                                    List<Class> interfaces=getAllInterfacesRecursively(block.getClass());
-                                                    Debug.logger(block);
-                                                    Debug.logger(block.getClass());
-                                                    Debug.logger(interfaces);
-                                                    iTileEntityInterface= interfaces.stream().filter(s->s.getSimpleName().endsWith("TileEntity")).findFirst().get();
-                                                }
-                                                Debug.logger(world);
-                                                Debug.logger(state);
-                                                Debug.logger(type);
-                                                var ticker= getTickerMethodAccess.invokeIgnoreFailure(block,world,state,type);
-                                                if(blockEntityTickerInterface==null){
-                                                    List<Class> interfaces=getAllInterfacesRecursively(ticker.getClass());
-                                                    Debug.logger(ticker);
-                                                    Debug.logger(ticker.getClass());
-                                                    Debug.logger(interfaces);
-                                                    blockEntityTickerInterface= interfaces.stream().filter(s->s.getSimpleName().endsWith("Ticker")).findFirst().get();
-                                                }
-                                                for (int i=0;i<50;++i){
-                                                    tickMethodAccess.invoke(ticker,world,blockPos,state,blockEntity);
-                                                }
-                                                Debug.logger("successfully invoke!");
-                                            }catch (Throwable e){
-                                                Debug.logger("failed");
-                                                e.printStackTrace();
-                                            }
-                                        },()->{Debug.logger("failed getCraftWorldHandle");},bb.getWorld());
-                                    },()->{Debug.logger("failed getBlockEntityType");},blockEntity);
-                                },()->{Debug.logger("failed getNMSBlockType");},state);
-                            },()->{Debug.logger("failed getNMS");},bb);
-                        }else {
-                            Debug.logger("not a tile Entity");
-                        }
-                    },()->{Debug.logger("failed getBlockEntityMethod");},levelAccess,blockPos);
-                },()->{Debug.logger("failed getPositionMethod");},bb);
-            },()->{Debug.logger("failed getHandle");},bb);
+
+                Debug.logger("block present");
+                Block bb=b.get();
+//                getHandleMethodAccess.invokeCallback((levelAccess)->{
+//                    getPositionMethodAccess.invokeCallback((blockPos)->{
+//                        getNMSMethodAccess.invokeCallback((state)->{
+//                        getNMSBlockType.invokeCallback((block)->{
+//                            getBlockEntityTypeMethodAccess.invokeCallback((type)->{
+//                            },()->{Debug.logger("failed getBlockEntityType");},blockEntity);
+//                        },()->{Debug.logger("failed getNMSBlockType");},state);
+//                        },()->{Debug.logger("failed getNMS");},bb);
+//                    },()->{Debug.logger("failed getPositionMethod");},bb);
+//                },()->{Debug.logger("failed getHandle");},bb);
+                getHandleMethodAccess.invokeCallback((levelAccess)->{
+                    getPositionMethodAccess.invokeCallback((blockPos)->{
+                        getNMSMethodAccess.invokeCallback((state)->{
+                            getNMSBlockType.invokeCallback((block)->{
+                                if(iTileEntityInterface==null){
+                                    List<Class> interfaces=getAllInterfacesRecursively(block.getClass());
+                                    Debug.logger(block);
+                                    Debug.logger(block.getClass());
+                                    Debug.logger(interfaces);
+                                    var val= interfaces.stream().filter(s->s.getSimpleName().endsWith("TileEntity")).findFirst();
+                                    if(val.isPresent()){
+                                        iTileEntityInterface=val.get();
+                                    }else {
+                                        return;
+                                    }
+                                }
+                                if(iTileEntityInterface.isInstance(block)){
+                                    getBlockEntityMethodAccess.invokeCallback((blockEntity)->{
+                                        if(blockEntity!=null){
+                                            getBlockEntityTypeMethodAccess.invokeCallback((type)->{
+                                                getCraftWorldHandleMethodAccess.invokeCallback((world)->{
+                                                    try{
+                                                        Debug.logger(world);
+                                                        Debug.logger(state);
+                                                        Debug.logger(type);
+                                                        var ticker= getTickerMethodAccess.invokeIgnoreFailure(block,world,state,type);
+                                                        if(ticker!=null){
+                                                            if(blockEntityTickerInterface==null){
+                                                                List<Class> interfaces=getAllInterfacesRecursively(ticker.getClass());
+                                                                Debug.logger(ticker);
+                                                                Debug.logger(ticker.getClass());
+                                                                Debug.logger(interfaces);
+                                                                blockEntityTickerInterface= interfaces.stream().filter(s->s.getSimpleName().endsWith("Ticker")).findFirst().get();
+                                                            }
+                                                            for (int i=0;i<50;++i){
+                                                                //   tickMethodAccess.invoke(ticker,world,blockPos,state,blockEntity);
+                                                            }
+                                                        }
+                                                        Debug.logger("successfully invoke!");
+                                                    }catch (Throwable e){
+                                                        Debug.logger("failed");
+                                                        e.printStackTrace();
+                                                    }
+                                                },()->{Debug.logger("failed getCraftWorldHandle");},bb.getWorld());
+                                            },()->{Debug.logger("failed getBlockEntityType");},blockEntity);
+                                        }else {
+                                            Debug.logger("not a tile Entity");
+                                        }
+                                    },()->{Debug.logger("failed getBlockEntityMethod");},levelAccess,blockPos);
+                                }else{
+                                    Debug.logger("not a instance of TileEntity");
+                                }
+                            },()->{Debug.logger("failed getNMSBlockType");},state);
+
+                        },()->{Debug.logger("failed getNMS");},bb);
+                    },()->{Debug.logger("failed getPositionMethod");},bb);
+                },()->{Debug.logger("failed getHandle");},bb);
+
+
         }
     }
 }
